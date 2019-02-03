@@ -12,14 +12,13 @@
 #include <QApplication>
 #include "PlayerControls.h"
 
-#include "Qt/VideoRenderWidget.h"
-
 // Define the QtPlayer without including it (due to build issues with Qt moc / Qt macros)
 namespace openshot
 {
     class QtPlayer;
 }
 
+class VideoRenderWidget;
 using openshot::QtPlayer;
 
 class PlayerWidget : public QWidget
@@ -37,7 +36,7 @@ protected:
 signals:
 	void present(const QImage &image);
 
-private slots:
+public slots:
 	void open(bool checked = true);
 	void open(const QString & file);
 

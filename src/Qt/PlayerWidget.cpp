@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "QtPlayer.h"
 #include "Qt/PlayerWidget.h"
+#include "Qt/VideoRenderWidget.h"
 #include <QMessageBox>
 #include <QFileDialog>
 
