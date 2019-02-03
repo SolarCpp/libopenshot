@@ -28,8 +28,10 @@
  * along with OpenShot Library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../include/FFmpegReader.h"
-
+#include "FFmpegReader.h"
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 using namespace openshot;
 
 FFmpegReader::FFmpegReader(string path)
@@ -566,7 +568,11 @@ std::shared_ptr<Frame> FFmpegReader::ReadStream(int64_t requested_frame)
 
 				// Wait if too many frames are being processed
 				while (processing_video_frames_size + processing_audio_frames_size >= minimum_packets) {
+					#ifndef _WIN32
 					usleep(2500);
+					#else
+					Sleep(2);
+					#endif
 					const GenericScopedLock<CriticalSection> lock(processingCriticalSection);
 					processing_video_frames_size = processing_video_frames.size();
 					processing_audio_frames_size = processing_audio_frames.size();
@@ -616,7 +622,9 @@ std::shared_ptr<Frame> FFmpegReader::ReadStream(int64_t requested_frame)
 						if (!use_omp_threads) {
 							// Wait on each OMP task to complete before moving on to the next one. This slows
 							// down processing considerably, but might be more stable on some systems.
+#ifndef _MSC_VER
 							#pragma omp taskwait
+#endif
 						}
 					}
 
@@ -851,7 +859,7 @@ void FFmpegReader::ProcessVideoPacket(int64_t requested_frame)
 		seek_video_frame_found = current_frame;
 
 	// Are we close enough to decode the frame? and is this frame # valid?
-	if ((current_frame < (requested_frame - 20)) or (current_frame == -1))
+	if ((current_frame < (requested_frame - 20)) || (current_frame == -1))
 	{
 		// Remove frame and packet
 		RemoveAVFrame(pFrame);
@@ -877,7 +885,9 @@ void FFmpegReader::ProcessVideoPacket(int64_t requested_frame)
 	const GenericScopedLock<CriticalSection> lock(processingCriticalSection);
 	processing_video_frames[current_frame] = current_frame;
 
+#ifndef _MSC_VER
 	#pragma omp task firstprivate(current_frame, my_frame, height, width, video_length, pix_fmt)
+#endif
 	{
 		// Create variables for a RGB Frame (since most videos are not in RGB, we must convert it)
 		AVFrame *pFrameRGB = NULL;
@@ -1290,7 +1300,11 @@ void FFmpegReader::Seek(int64_t requested_frame)
 
 	// Wait for any processing frames to complete
 	while (processing_video_frames_size + processing_audio_frames_size > 0) {
+		#ifndef _WIN32
 		usleep(2500);
+		#else
+		Sleep(2);
+		#endif
 		const GenericScopedLock<CriticalSection> lock(processingCriticalSection);
 		processing_video_frames_size = processing_video_frames.size();
 		processing_audio_frames_size = processing_audio_frames.size();

@@ -52,6 +52,10 @@
 
 #include "../include/DecklinkOutput.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 using namespace std;
 
 DeckLinkOutputDelegate::DeckLinkOutputDelegate(IDeckLinkDisplayMode *displayMode, IDeckLinkOutput* m_deckLinkOutput)
@@ -169,7 +173,11 @@ void DeckLinkOutputDelegate::ScheduleNextFrame(bool prerolling)
 										&m_currentFrame) != S_OK)
 				{
 					cout << "failed to create video frame" << endl;
+					#ifndef _WIN32
 					usleep(1000 * 1);
+					#else
+					Sleep(1);
+					#endif
 				}
 
 				// Copy pixel data to frame

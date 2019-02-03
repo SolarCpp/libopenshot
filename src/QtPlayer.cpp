@@ -61,22 +61,23 @@ void QtPlayer::CloseAudioDevice()
 
 void QtPlayer::SetSource(const std::string &source)
 {
-	FFmpegReader *ffreader = new FFmpegReader(source);
+	FFmpegReader *ffreader = new FFmpegReader(source, false);
 	ffreader->DisplayInfo();
+	ffreader->Open();
 
 	//reader = new FrameMapper(ffreader, ffreader->info.fps, PULLDOWN_NONE, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
-	reader = new Timeline(ffreader->info.width, ffreader->info.height, ffreader->info.fps, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
+	auto timeline = new Timeline(ffreader->info.width, ffreader->info.height, ffreader->info.fps, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
 	Clip *c = new Clip(source);
+	c->Open();
 
-	Timeline* tm = (Timeline*)reader;
-	tm->AddClip(c);
-	tm->Open();
+	timeline->AddClip(c);
+	timeline->Open();
 
-//	ZmqLogger::Instance()->Path("/home/jonathan/.openshot_qt/libopenshot.log");
-//	ZmqLogger::Instance()->Enable(true);
+	ZmqLogger::Instance()->Path("E:/ws.mm/libopenshot.log");
+	ZmqLogger::Instance()->Enable(true);
 
     // Set the reader
-	Reader(reader);
+	Reader(ffreader);
 }
 
 void QtPlayer::Play()

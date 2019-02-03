@@ -26,7 +26,9 @@
  */
 
 #include "../include/Frame.h"
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 using namespace std;
 using namespace openshot;
 
@@ -992,7 +994,11 @@ void Frame::Play()
 	while (transport1.isPlaying())
 	{
 		cout << "playing" << endl;
+		#ifndef _WIN32
 		usleep(1000000);
+		#else
+		Sleep(1000);
+		#endif
 	}
 
 	cout << "DONE!!!" << endl;

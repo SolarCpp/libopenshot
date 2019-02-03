@@ -33,7 +33,9 @@
 #include "../../include/OpenShot.h"
 #include <omp.h>
 #include <time.h>
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 using namespace openshot;
 
 int main(int argc, char *argv[])
@@ -175,7 +177,11 @@ int main(int argc, char *argv[])
 	}
 
 	// Sleep
+	#ifndef _WIN32
 	sleep(4);
+	#else
+	Sleep(4);
+	#endif
 
 
 
@@ -219,7 +225,7 @@ int main(int argc, char *argv[])
 //	}
 //
 //	// Sleep
-//	sleep(4);
+//	Sleep(4);
 //
 //	// Close writer
 //	w.Close();

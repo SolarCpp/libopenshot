@@ -26,7 +26,9 @@
  */
 
 #include "../../include/Qt/VideoCacheThread.h"
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 namespace openshot
 {
 	// Constructor
@@ -107,7 +109,11 @@ namespace openshot
 	    }
 
 		// Sleep for 1 frame length
+		#ifndef _WIN32
 		usleep(frame_time * 1000);
+		#else
+		Sleep(frame_time);
+		#endif
 	}
 
 	return;

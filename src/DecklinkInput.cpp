@@ -52,6 +52,10 @@
 
 #include "../include/DecklinkInput.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 using namespace std;
 
 DeckLinkInputDelegate::DeckLinkInputDelegate(pthread_cond_t* m_sleepCond, IDeckLinkOutput* m_deckLinkOutput, IDeckLinkVideoConversion* m_deckLinkConverter)
@@ -111,7 +115,11 @@ std::shared_ptr<openshot::Frame> DeckLinkInputDelegate::GetFrame(int64_t request
 	// Is this frame for the future?
 	while (requested_frame > GetCurrentFrameNumber())
 	{
+		#ifndef _WIN32
 		usleep(500 * 1);
+		#else
+		Sleep(1);
+		#endif
 	}
 
 	#pragma omp critical (blackmagic_input_queue)

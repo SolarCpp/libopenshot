@@ -39,8 +39,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <zmq.hpp>
+#ifndef _WIN32
 #include <unistd.h>
-
+#endif
 
 using namespace std;
 

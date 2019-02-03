@@ -26,6 +26,9 @@
 
 cmake_minimum_required(VERSION 2.8.11)
 
+cmake_policy(SET CMP0023 OLD)
+cmake_policy(SET CMP0048 OLD)
+
 MESSAGE("--------------------------------------------------------------")
 MESSAGE("Welcome to the OpenShot Build System! CMake will now check for all required build")
 MESSAGE("dependencies and notify you of any missing files or other issues. If you have any")
@@ -67,6 +70,17 @@ PROJECT(openshot)
 MESSAGE("--------------------------------------------------------------")
 MESSAGE("Generating build files for ${PROJECT_NAME} (${PROJECT_VERSION})")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/)
+# Second, for multi-config builds (e.g. msvc)
+foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+	string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
+	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
+	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} )
+endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+
 #### Enable C++11 (for std::shared_ptr support)
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
@@ -78,9 +92,26 @@ ENDIF(WIN32)
 set(QT_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/Qt)
 FILE(GLOB QT_HEADER_FILES "${QT_HEADER_DIR}/*.h")
 
+############## 
+message(STATUS ${Qt5_DIR})
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui Multimedia MultimediaWidgets)
+
+if(1)
+# set(Qt5Core_DIR ${Qt_DIR}/lib/cmake/Qt5Core)
+# set(Qt5Widgets_DIR ${Qt_DIR}/lib/cmake/Qt5Widgets)
+# set(Qt5Gui_DIR ${Qt_DIR}/lib/cmake/Qt5Gui)
+# set(Qt5Multimedia_DIR ${Qt_DIR}/lib/cmake/Qt5Multimedia)
+# set(Qt5MultimediaWidgets_DIR ${Qt_DIR}/lib/cmake/Qt5MultimediaWidgets)
+if(MSVC)
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+endif()
+endif()
+
 ############## PROCESS SUB-DIRECTORIES ##############
 add_subdirectory(src)
-add_subdirectory(tests)
+#add_subdirectory(tests)
+
+add_subdirectory(demo)
 
 ################### DOCUMENTATION ###################
 # Find Doxygen (used for documentation)
@@ -88,3 +119,11 @@ include(cmake/Modules/UseDoxygen.cmake)
 
 file(GLOB_RECURSE doc_files ${CMAKE_CURRENT_BINARY_DIR}/doc/html/*.*)
 INSTALL(FILES ${doc_files} DESTINATION share/doc/libopenshot)
+
+
+message("\n\n")
+include(FeatureSummary)
+feature_summary(
+  DESCRIPTION "------- FEATURE SUMMARY FOR ${PROJECT_NAME} -------"
+  WHAT ALL
+)

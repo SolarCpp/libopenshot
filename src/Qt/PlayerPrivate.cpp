@@ -27,7 +27,9 @@
  */
 
 #include "../../include/Qt/PlayerPrivate.h"
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 namespace openshot
 {
 	// Constructor
@@ -77,7 +79,11 @@ namespace openshot
 			// Experimental Pausing Code (if frame has not changed)
 			if ((speed == 0 && video_position == last_video_position) || (video_position > reader->info.video_length)) {
 				speed = 0;
-				sleep(frame_time);
+				#ifndef _WIN32
+				usleep(frame_time * 1000);
+				#else
+				Sleep(frame_time);
+				#endif
 				continue;
 			}
 
@@ -129,8 +135,13 @@ namespace openshot
 			}
 
 			// Sleep (leaving the video frame on the screen for the correct amount of time)
-			if (sleep_time > 0) usleep(sleep_time * 1000);
-
+			if (sleep_time > 0) {
+			    #ifndef _WIN32
+				usleep(sleep_time * 1000);
+				#else
+				Sleep(sleep_time);
+				#endif
+			}
 		}
     }
 

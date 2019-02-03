@@ -46,7 +46,9 @@
 #include <ctime>
 #include <iostream>
 #include <stdio.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include "CacheMemory.h"
 #include "Exceptions.h"
 #include "OpenMPUtilities.h"

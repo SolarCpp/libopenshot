@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <signal.h>
-#ifdef __MINGW32__
+#ifdef _WIN32 //|| _WIN32
 	#include <winsock2.h>
 	#include <windows.h>
 	#include <DbgHelp.h>
@@ -39,7 +39,9 @@
 	#include <execinfo.h>
 #endif
 #include <errno.h>
+#ifndef _WIN32
 #include <cxxabi.h>
+#endif
 #include "ZmqLogger.h"
 
 namespace openshot {
@@ -71,7 +73,7 @@ namespace openshot {
 		/// registers the instance as a signal handler for libc
 		static CrashHandler *Instance();
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 		// TODO: Windows exception handling methods
 		static void abortHandler(int signum);
 #else

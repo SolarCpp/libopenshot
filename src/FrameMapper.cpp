@@ -100,7 +100,7 @@ void FrameMapper::Init()
 	ZmqLogger::Instance()->AppendDebugMethod("FrameMapper::Init (Calculate frame mappings)", "", -1, "", -1, "", -1, "", -1, "", -1, "", -1);
 
 	// Do not initialize anything if just a picture with no audio
-	if (info.has_video and !info.has_audio and info.has_single_image)
+	if (info.has_video && !info.has_audio && info.has_single_image)
 		// Skip initialization
 		return;
 
@@ -311,7 +311,7 @@ void FrameMapper::Init()
 MappedFrame FrameMapper::GetMappedFrame(int64_t TargetFrameNumber)
 {
 	// Ignore mapping on single image readers
-	if (info.has_video and !info.has_audio and info.has_single_image) {
+	if (info.has_video && !info.has_audio && info.has_single_image) {
 		// Return the same number
 		MappedFrame frame;
 		frame.Even.Frame = TargetFrameNumber;

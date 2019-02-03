@@ -51,7 +51,9 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QLabel>
 #include <memory>
+#ifndef _WIN32
 #include <unistd.h>
+#endif //_WIN32
 #include "ZmqLogger.h"
 #ifdef USE_IMAGEMAGICK
 	#include "Magick++.h"

@@ -10,7 +10,7 @@ find_path ( ZMQ_INCLUDE_DIR zmq.h
                   /usr/local/include/
                   $ENV{ZMQDIR}/include/ )
 
-find_library ( ZMQ_LIBRARY NAMES zmq
+find_library ( ZMQ_LIBRARY NAMES zmq libzmq-mt-4_3_1
             PATHS /usr/lib/
                   /usr/local/lib/
                   $ENV{ZMQDIR}/lib/ )

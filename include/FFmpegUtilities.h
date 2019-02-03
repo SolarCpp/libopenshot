@@ -146,10 +146,10 @@
 		#define AV_FREE_CONTEXT(av_context) avcodec_free_context(&av_context)
 		#define AV_GET_CODEC_TYPE(av_stream) av_stream->codecpar->codec_type
 		#define AV_FIND_DECODER_CODEC_ID(av_stream) av_stream->codecpar->codec_id
-		auto AV_GET_CODEC_CONTEXT = [](AVStream* av_stream, AVCodec* av_codec) { \
-			AVCodecContext *context = avcodec_alloc_context3(av_codec); \
-			avcodec_parameters_to_context(context, av_stream->codecpar); \
-			return context; \
+		inline AVCodecContext * AV_GET_CODEC_CONTEXT(AVStream* av_stream, AVCodec* av_codec) { 
+			AVCodecContext *context = avcodec_alloc_context3(av_codec); 
+			avcodec_parameters_to_context(context, av_stream->codecpar); 
+			return context; 
 		};
 		#define AV_GET_CODEC_PAR_CONTEXT(av_stream, av_codec) av_codec;
 		#define AV_GET_CODEC_FROM_STREAM(av_stream,codec_in)
@@ -181,10 +181,10 @@
 		#define AV_FREE_CONTEXT(av_context) avcodec_free_context(&av_context)
 		#define AV_GET_CODEC_TYPE(av_stream) av_stream->codecpar->codec_type
 		#define AV_FIND_DECODER_CODEC_ID(av_stream) av_stream->codecpar->codec_id
-		auto AV_GET_CODEC_CONTEXT = [](AVStream* av_stream, AVCodec* av_codec) { \
-			AVCodecContext *context = avcodec_alloc_context3(av_codec); \
-			avcodec_parameters_to_context(context, av_stream->codecpar); \
-			return context; \
+		inline AVCodecContext * AV_GET_CODEC_CONTEXT(AVStream* av_stream, AVCodec* av_codec) { 
+			AVCodecContext *context = avcodec_alloc_context3(av_codec); 
+			avcodec_parameters_to_context(context, av_stream->codecpar); 
+			return context; 
 		};
 		#define AV_GET_CODEC_PAR_CONTEXT(av_stream, av_codec) av_codec;
 		#define AV_GET_CODEC_FROM_STREAM(av_stream,codec_in)

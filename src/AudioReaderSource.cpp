@@ -185,7 +185,7 @@ void AudioReaderSource::getNextAudioBlock(const AudioSourceChannelInfo& info)
 		// Do we need more samples?
 		if (speed == 1) {
 			// Only refill buffers if speed is normal
-			if ((reader && reader->IsOpen() && !frame) or
+			if ((reader && reader->IsOpen() && !frame) ||
 				(reader && reader->IsOpen() && buffer_samples - position < info.numSamples))
 				// Refill buffer from reader
 				GetMoreSamplesFromReader();

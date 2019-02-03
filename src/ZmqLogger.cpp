@@ -26,6 +26,9 @@
  */
 
 #include "../include/ZmqLogger.h"
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 using namespace std;
 using namespace openshot;
@@ -94,7 +97,11 @@ void ZmqLogger::Connection(string new_connection)
 	}
 
 	// Sleeping to allow connection to wake up (0.25 seconds)
+	#ifndef _WIN32
 	usleep(250000);
+	#else
+	Sleep(250);
+	#endif
 }
 
 void ZmqLogger::Log(string message)

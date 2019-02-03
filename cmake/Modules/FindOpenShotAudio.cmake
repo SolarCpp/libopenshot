@@ -34,12 +34,12 @@ LIST(REMOVE_DUPLICATES HEADER_DIRECTORIES)
 
 # Find the libopenshot-audio.so (check env var first)
 find_library(LIBOPENSHOT_AUDIO_LIBRARY
-		NAMES libopenshot-audio openshot-audio
+		NAMES libopenshot-audiod openshot-audiod
 		PATHS $ENV{LIBOPENSHOT_AUDIO_DIR}/lib/ NO_DEFAULT_PATH)
 
 # Find the libopenshot-audio.so / libopenshot-audio.dll library (fallback)
 find_library(LIBOPENSHOT_AUDIO_LIBRARY
-			NAMES libopenshot-audio openshot-audio
+			NAMES libopenshot-audiod openshot-audiod
 			HINTS $ENV{LIBOPENSHOT_AUDIO_DIR}/lib/
 			/usr/lib/
 			/usr/lib/libopenshot-audio/

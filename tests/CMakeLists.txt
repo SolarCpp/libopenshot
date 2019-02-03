@@ -121,7 +121,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Gui_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Multimedia_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5MultimediaWidgets_EXECUTABLE_COMPILE_FLAGS} ")
+if(MSVC)
+else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb ")
+endif()
 
 # Manually moc Qt files
 qt5_wrap_cpp(MOC_FILES ${QT_HEADER_FILES})
@@ -148,10 +151,10 @@ endif(OPENMP_FOUND)
 
 ################### ZEROMQ #####################
 # Find ZeroMQ library (used for socket communication & logging)
-FIND_PACKAGE(ZMQ REQUIRED)
+FIND_PACKAGE(ZeroMQ REQUIRED)
 
 # Include FFmpeg headers (needed for compile)
-include_directories(${ZMQ_INCLUDE_DIRS})
+include_directories(${ZeroMQ_INCLUDE_DIRS})
 
 ################### JSONCPP #####################
 # Include jsoncpp headers (needed for JSON parsing)

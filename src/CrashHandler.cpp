@@ -26,6 +26,9 @@
  */
 
 #include "../include/CrashHandler.h"
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 using namespace std;
 using namespace openshot;
@@ -41,7 +44,7 @@ CrashHandler *CrashHandler::Instance()
 		// Create the actual instance of crash handler only once
 		m_pInstance = new CrashHandler;
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 		// TODO: Windows exception handling methods
 		signal(SIGSEGV, CrashHandler::abortHandler);
 
@@ -64,7 +67,7 @@ CrashHandler *CrashHandler::Instance()
 	return m_pInstance;
 }
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 // Windows exception handler
 void CrashHandler::abortHandler(int signum)
 {
@@ -126,7 +129,7 @@ void CrashHandler::printStackTrace(FILE *out, unsigned int max_frames)
 	ZmqLogger::Instance()->LogToFile("---- Unhandled Exception: Stack Trace ----\n");
 	stringstream stack_output;
 
-#ifdef __MINGW32__
+#ifdef _WIN32
 	// Windows stack unwinding
 	HANDLE process = GetCurrentProcess();
 	HANDLE thread = GetCurrentThread();
@@ -185,13 +188,13 @@ void CrashHandler::printStackTrace(FILE *out, unsigned int max_frames)
 		PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		symbol->MaxNameLen = MAX_SYM_NAME;
-		WINBOOL found_symbol = SymFromAddr(process, stackframe.AddrPC.Offset, NULL, symbol);
+		BOOL found_symbol = SymFromAddr(process, stackframe.AddrPC.Offset, NULL, symbol);
 
 		if (found_symbol) {
-			printf("[%i] %s, address 0x%0X\n", i, symbol->Name, symbol->Address);
+			printf("[%zi] %s, address 0x%I64X\n", i, symbol->Name, symbol->Address);
 			stack_output << left << setw(30) << symbol->Name << " " << setw(40) << std::hex << symbol->Address << std::dec << endl;
 		} else {
-			printf("[%i] ???\n", i);
+			printf("[%zi] ???\n", i);
 			stack_output << left << setw(30) << "???" << endl;
 		}
 	}

@@ -26,14 +26,14 @@
 
 ################ OPTIONS ##################
 # Optional build settings for libopenshot
-OPTION(USE_SYSTEM_JSONCPP "Use system installed JsonCpp" OFF)
+OPTION(USE_SYSTEM_JSONCPP "Use system installed JsonCpp" ON)
 
 ################ WINDOWS ##################
 # Set some compiler options for Windows
 # required for libopenshot-audio headers
 IF (WIN32)
 	add_definitions( -DIGNORE_JUCE_HYPOT=1 )
-	SET(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -include cmath")
+	SET(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS}")
 ENDIF(WIN32)
 IF (APPLE)
 	# If you still get errors compiling with GCC 4.8, mac headers need to be patched: http://hamelot.co.uk/programming/osx-gcc-dispatch_block_t-has-not-been-declared-invalid-typedef/
@@ -75,14 +75,21 @@ IF (ImageMagick_FOUND)
 
 ENDIF (ImageMagick_FOUND)
 
+find_package(BZip2 REQUIRED)
+
 ################### FFMPEG #####################
 # Find FFmpeg libraries (used for video encoding / decoding)
 FIND_PACKAGE(FFmpeg REQUIRED)
-
 # Include FFmpeg headers (needed for compile)
-message('AVCODEC_FOUND: ${AVCODEC_FOUND}')
-message('AVCODEC_INCLUDE_DIRS: ${AVCODEC_INCLUDE_DIRS}')
-message('AVCODEC_LIBRARIES: ${AVCODEC_LIBRARIES}')
+#message('AVCODEC_FOUND: ${AVCODEC_FOUND}')
+#message('AVCODEC_INCLUDE_DIRS: ${AVCODEC_INCLUDE_DIRS}')
+#message('AVCODEC_LIBRARIES: ${AVCODEC_LIBRARIES}')
+if(FFMPEG_FOUND) 
+message("--> FFMPEG_LIBRARIES:" ${FFMPEG_LIBRARIES})
+message("--> FFMPEG_INCLUDE_DIRS:" ${FFMPEG_INCLUDE_DIRS})
+
+include_directories(${FFMPEG_INCLUDE_DIRS})
+endif()
 
 IF (AVCODEC_FOUND)
 	include_directories(${AVCODEC_INCLUDE_DIRS})
@@ -114,9 +121,7 @@ ENDIF (AVRESAMPLE_FOUND)
 
 ################# LIBOPENSHOT-AUDIO ###################
 # Find JUCE-based openshot Audio libraries
-FIND_PACKAGE(OpenShotAudio REQUIRED)
-
-message('LIBOPENSHOT_AUDIO_INCLUDE_DIRS: ${LIBOPENSHOT_AUDIO_INCLUDE_DIRS}')
+FIND_PACKAGE(libopenshot-audio REQUIRED)
 
 # Include Juce headers (needed for compile)
 include_directories(${LIBOPENSHOT_AUDIO_INCLUDE_DIRS})
@@ -154,7 +159,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Gui_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Multimedia_EXECUTABLE_COMPILE_FLAGS} ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5MultimediaWidgets_EXECUTABLE_COMPILE_FLAGS} ")
+if(MSVC)
+else()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -ggdb ")
+endif()
 
 # Manually moc Qt files
 qt5_wrap_cpp(MOC_FILES ${QT_HEADER_FILES})
@@ -185,19 +193,20 @@ endif(OPENMP_FOUND)
 
 ################### ZEROMQ #####################
 # Find ZeroMQ library (used for socket communication & logging)
-FIND_PACKAGE(ZMQ REQUIRED)
+FIND_PACKAGE(ZeroMQ REQUIRED)
 
 # Include ZeroMQ headers (needed for compile)
-include_directories(${ZMQ_INCLUDE_DIRS})
+include_directories(${ZeroMQ_INCLUDE_DIRS})
 
+include_directories(${CMAKE_SOURCE_DIR}/include)
 ################### JSONCPP #####################
 # Include jsoncpp headers (needed for JSON parsing)
 if (USE_SYSTEM_JSONCPP)
-	find_package(JsonCpp REQUIRED)
+	find_package(jsoncpp REQUIRED)
 	include_directories(${JSONCPP_INCLUDE_DIRS})
 else()
 	message("Using embedded JsonCpp")
-	include_directories("../thirdparty/jsoncpp/include")
+	include_directories(${CMAKE_SOURCE_DIR}/thirdparty/jsoncpp/include)
 endif(USE_SYSTEM_JSONCPP)
 
 ###############  PROFILING  #################
@@ -284,9 +293,23 @@ SET(CMAKE_MACOSX_RPATH 0)
 
 ############### CREATE LIBRARY #################
 # Create shared openshot library
+if(MSVC)
+add_library(openshot STATIC
+		${OPENSHOT_SOURCE_FILES}
+		${headers} )
+else()
 add_library(openshot SHARED
 		${OPENSHOT_SOURCE_FILES}
 		${headers} )
+endif()
+
+target_include_directories(openshot
+		PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+)
+
+if (USE_SYSTEM_JSONCPP)
+target_link_libraries(openshot PRIVATE jsoncpp_lib)
+endif()
 
 # Set SONAME and other library properties
 set_target_properties(openshot
@@ -298,12 +321,16 @@ set_target_properties(openshot
 
 ###############  LINK LIBRARY  #################
 SET ( REQUIRED_LIBRARIES
-		${LIBOPENSHOT_AUDIO_LIBRARIES}
 		${QT_LIBRARIES}
 		${PROFILER}
 		${JSONCPP_LIBRARY}
-		${ZMQ_LIBRARIES}
+		${ZeroMQ_LIBRARIES}
+		libzmq
 		)
+	
+if(FFMPEG_FOUND)
+LIST(APPEND REQUIRED_LIBRARIES ${FFMPEG_LIBRARIES})
+endif()
 
 IF (AVCODEC_FOUND)
 	SET ( REQUIRED_LIBRARIES ${REQUIRED_LIBRARIES} ${AVCODEC_LIBRARIES} )
@@ -351,7 +378,17 @@ IF (WIN32)
 ENDIF(WIN32)
 
 # Link all referenced libraries
-target_link_libraries(openshot ${REQUIRED_LIBRARIES})
+target_link_libraries(openshot 
+PUBLIC  ${REQUIRED_LIBRARIES} openshot-audio 
+PRIVATE BZip2::BZip2
+)
+
+if (OPENMP_FOUND)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} ")
+endif(OPENMP_FOUND)
+
+# target_compile_options(openshot)
+# target_
 
 
 ############### CLI EXECUTABLE ################
@@ -387,13 +424,34 @@ set(LIB_INSTALL_DIR lib${LIB_SUFFIX}) # determine correct lib folder
 
 # Install primary library
 INSTALL(  TARGETS openshot
+        EXPORT openshotTargets
 		ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 		LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-		COMPONENT library )
+		INCLUDES DESTINATION include
+		)
+
+install(EXPORT openshotTargets
+		FILE libopenshotTargets.cmake
+		DESTINATION lib/cmake/libopenshot
+)
 
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/include/
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libopenshot
 		FILES_MATCHING PATTERN "*.h")
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/libopenshotConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+	)
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/libopenshotConfig.in.cmake libopenshotConfig.cmake @ONLY)
+install(
+	FILES "${CMAKE_CURRENT_BINARY_DIR}/libopenshotConfigVersion.cmake"
+	      "${CMAKE_CURRENT_BINARY_DIR}/libopenshotConfig.cmake"
+    DESTINATION lib/cmake/libopenshot
+)
 
 ############### CPACK PACKAGING ##############
 IF(MINGW)

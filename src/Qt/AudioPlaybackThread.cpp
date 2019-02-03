@@ -27,7 +27,9 @@
  */
 
 #include "../../include/Qt/AudioPlaybackThread.h"
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 namespace openshot
 {
 
@@ -164,8 +166,13 @@ namespace openshot
     			// Start the transport
     			transport.start();
 
-    			while (!threadShouldExit() && transport.isPlaying() && is_playing)
+    			while (!threadShouldExit() && transport.isPlaying() && is_playing) {
+					#ifndef _WIN32
 					usleep(2500);
+					#else
+					Sleep(2);
+					#endif
+				}
 
 				// Stop audio and shutdown transport
 				Stop();

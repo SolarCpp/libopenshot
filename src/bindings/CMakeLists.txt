@@ -25,11 +25,11 @@
 ################################################################################
 
 IF(NOT DEFINED ENABLE_PYTHON)
-    SET(ENABLE_PYTHON 1)
+    SET(ENABLE_PYTHON 0)
 ENDIF()
 
 IF(NOT DEFINED ENABLE_RUBY)
-    SET(ENABLE_RUBY 1)
+    SET(ENABLE_RUBY 0)
 ENDIF()
 
 ############### INCLUDE EACH LANGUAGE BINDING ################

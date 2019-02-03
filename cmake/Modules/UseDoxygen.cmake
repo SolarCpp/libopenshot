@@ -133,8 +133,10 @@ if(DOXYGEN_FOUND AND DOXYFILE_IN_FOUND)
 
 
 	configure_file("${DOXYFILE_IN}" "${DOXYFILE}" @ONLY)
-
+	
+	if(doc)
 	get_target_property(DOC_TARGET doc TYPE)
+	endif()
 	if(NOT DOC_TARGET)
 		add_custom_target(doc)
 	endif()

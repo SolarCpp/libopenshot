@@ -40,7 +40,11 @@
 #include <QtCore/qdir.h>
 #include <stdio.h>
 #include <sstream>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
+
 #include "CacheMemory.h"
 #include "Exceptions.h"
 #include "Json.h"

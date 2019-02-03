@@ -572,7 +572,7 @@ void FFmpegWriter::flush_encoders()
 		for (;;) {
 
 			// Increment PTS (in frames and scaled to the codec's timebase)
-			write_video_count += av_rescale_q(1, (AVRational){info.fps.den, info.fps.num}, video_codec->time_base);
+			write_video_count += av_rescale_q(1, AVRational({info.fps.den, info.fps.num}), video_codec->time_base);
 
 			AVPacket pkt;
 			av_init_packet(&pkt);
@@ -674,7 +674,7 @@ void FFmpegWriter::flush_encoders()
 			// Increment PTS (in samples and scaled to the codec's timebase)
 #if LIBAVFORMAT_VERSION_MAJOR >= 54
 			// for some reason, it requires me to multiply channels X 2
-			write_audio_count += av_rescale_q(audio_input_position / (audio_codec->channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16)), (AVRational){1, info.sample_rate}, audio_codec->time_base);
+			write_audio_count += av_rescale_q(audio_input_position / (audio_codec->channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16)), AVRational({1, info.sample_rate}), audio_codec->time_base);
 #else
 			write_audio_count += av_rescale_q(audio_input_position / audio_codec->channels, (AVRational){1, info.sample_rate}, audio_codec->time_base);
 #endif
@@ -1138,7 +1138,9 @@ void FFmpegWriter::open_video(AVFormatContext *oc, AVStream *st)
 // write all queued frames' audio to the video file
 void FFmpegWriter::write_audio_packets(bool final)
 {
+#ifndef _MSC_VER
 	#pragma omp task firstprivate(final)
+#endif
 	{
 		// Init audio buffers / variables
 		int total_frame_samples = 0;
@@ -1552,7 +1554,9 @@ void FFmpegWriter::process_video_packet(std::shared_ptr<Frame> frame)
 	if (rescaler_position == num_of_rescalers)
 		rescaler_position = 0;
 
+#ifndef _MSC_VER
 	#pragma omp task firstprivate(frame, scaler, source_image_width, source_image_height)
+#endif
 	{
 		// Allocate an RGB frame & final output frame
 		int bytes_source = 0;
@@ -1609,7 +1613,7 @@ bool FFmpegWriter::write_video_packet(std::shared_ptr<Frame> frame, AVFrame* fra
 		pkt.size= sizeof(AVPicture);
 
 		// Increment PTS (in frames and scaled to the codec's timebase)
-		write_video_count += av_rescale_q(1, (AVRational){info.fps.den, info.fps.num}, video_codec->time_base);
+		write_video_count += av_rescale_q(1, AVRational({info.fps.den, info.fps.num}), video_codec->time_base);
 		pkt.pts = write_video_count;
 
 		/* write the compressed frame in the media file */
@@ -1637,7 +1641,7 @@ bool FFmpegWriter::write_video_packet(std::shared_ptr<Frame> frame, AVFrame* fra
 		uint8_t *video_outbuf = NULL;
 
 		// Increment PTS (in frames and scaled to the codec's timebase)
-		write_video_count += av_rescale_q(1, (AVRational){info.fps.den, info.fps.num}, video_codec->time_base);
+		write_video_count += av_rescale_q(1, AVRational({info.fps.den, info.fps.num}), video_codec->time_base);
 
 		// Assign the initial AVFrame PTS from the frame counter
 		frame_final->pts = write_video_count;
