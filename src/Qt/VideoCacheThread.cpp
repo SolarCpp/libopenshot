@@ -34,7 +34,7 @@ namespace openshot
 	// Constructor
 	VideoCacheThread::VideoCacheThread()
 	: Thread("video-cache"), speed(1), is_playing(false), position(1)
-	, reader(NULL), max_frames(OPEN_MP_NUM_PROCESSORS * 2), current_display_frame(1)
+	, reader(NULL), max_frames(12), current_display_frame(1)
     {
     }
 
@@ -86,7 +86,7 @@ namespace openshot
 
 	    // Cache frames before the other threads need them
 	    // Cache frames up to the max frames
-	    while (speed == 1 && (position - current_display_frame) < max_frames)
+	    while (speed == 1 && std::abs(position - current_display_frame) < max_frames)
 	    {
 	    	// Only cache up till the max_frames amount... then sleep
 			try
