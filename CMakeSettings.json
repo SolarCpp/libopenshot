@@ -7,7 +7,7 @@
       "inheritEnvironments": [
         "msvc_x64_x64"
       ],
-      "buildRoot": "E:\\ws.mm\\libopenshot.build_debug",
+      "buildRoot": "E:\\ws.mm\\libopenshot-solar.build_debug",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",

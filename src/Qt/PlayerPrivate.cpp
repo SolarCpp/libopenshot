@@ -146,35 +146,38 @@ namespace openshot
     }
 
     // Get the next displayed frame (based on speed and direction)
-    std::shared_ptr<Frame> PlayerPrivate::getFrame()
-    {
-	try {
-		// Get the next frame (based on speed)
-		if (video_position + speed >= 1 && video_position + speed <= reader->info.video_length)
-			video_position = video_position + speed;
+	std::shared_ptr<Frame> PlayerPrivate::getFrame()
+	{
+		try {
+			// Get the next frame (based on speed)
+			if (video_position + speed >= 1 && video_position + speed <= reader->info.video_length)
+				video_position = video_position + speed;
 
-		if (frame && frame->number == video_position && video_position == last_video_position) {
-			// return cached frame
-			return frame;
+			if (frame && frame->number == video_position && video_position == last_video_position) {
+				// return cached frame
+				return frame;
+			}
+			else
+			{
+				// Update cache on which frame was retrieved
+				videoCache->current_display_frame = video_position;
+
+				// return frame from reader
+				return reader->GetFrame(video_position);
+			}
+
 		}
-		else
-		{
-			// Update cache on which frame was retrieved
-			videoCache->current_display_frame = video_position;
-
-			// return frame from reader
-			return reader->GetFrame(video_position);
+		catch (const ReaderClosed & e) {
+			// ...
 		}
-
-	} catch (const ReaderClosed & e) {
-	    // ...
-	} catch (const TooManySeeks & e) {
-	    // ...
-	} catch (const OutOfBoundsFrame & e) {
-	    // ...
+		catch (const TooManySeeks & e) {
+			// ...
+		}
+		catch (const OutOfBoundsFrame & e) {
+			// ...
+		}
+		return std::shared_ptr<Frame>();
 	}
-	return std::shared_ptr<Frame>();
-    }
 
     // Start video/audio playback
     bool PlayerPrivate::startPlayback()
@@ -189,11 +192,14 @@ namespace openshot
     // Stop video/audio playback
     void PlayerPrivate::stopPlayback(int timeOutMilliseconds)
     {
-    	if (isThreadRunning()) stopThread(timeOutMilliseconds);
-    	if (audioPlayback->isThreadRunning() && reader->info.has_audio) audioPlayback->stopThread(timeOutMilliseconds);
-    	if (videoCache->isThreadRunning() && reader->info.has_video) videoCache->stopThread(timeOutMilliseconds);
-    	if (videoPlayback->isThreadRunning() && reader->info.has_video) videoPlayback->stopThread(timeOutMilliseconds);
-
+    	if (isThreadRunning()) 
+			stopThread(timeOutMilliseconds);
+    	if (audioPlayback->isThreadRunning() && reader->info.has_audio) 
+			audioPlayback->stopPlayback(timeOutMilliseconds);
+    	if (videoCache->isThreadRunning() && reader->info.has_video) 
+			videoCache->stopPlayback(timeOutMilliseconds);
+    	if (videoPlayback->isThreadRunning() && reader->info.has_video) 
+			videoPlayback->stopThread(timeOutMilliseconds);
     }
 
 

@@ -44,39 +44,39 @@ namespace openshot
      *  @brief The private part of QtPlayer class, which contains an audio thread and video thread,
      *  and controls the video timing and audio synchronization code.
      */
-    class PlayerPrivate : Thread
-    {
-    std::shared_ptr<Frame> frame; /// The current frame
-	int64_t video_position; /// The current frame position.
-	int64_t audio_position; /// The current frame position.
-	ReaderBase *reader; /// The reader which powers this player
-	AudioPlaybackThread *audioPlayback; /// The audio thread
-	VideoPlaybackThread *videoPlayback; /// The video thread
-	VideoCacheThread *videoCache; /// The cache thread
-	int speed; /// The speed and direction to playback a reader (1=normal, 2=fast, 3=faster, -1=rewind, etc...)
-	RendererBase *renderer;
-	int64_t last_video_position; /// The last frame actually displayed
+	class PlayerPrivate : public Thread
+	{
+		std::shared_ptr<Frame> frame; /// The current frame
+		int64_t video_position; /// The current frame position.
+		int64_t audio_position; /// The current frame position.
+		ReaderBase *reader; /// The reader which powers this player
+		AudioPlaybackThread *audioPlayback; /// The audio thread
+		VideoPlaybackThread *videoPlayback; /// The video thread
+		VideoCacheThread *videoCache; /// The cache thread
+		int speed; /// The speed and direction to playback a reader (1=normal, 2=fast, 3=faster, -1=rewind, etc...)
+		RendererBase *renderer;
+		int64_t last_video_position; /// The last frame actually displayed
 
-	/// Constructor
-	PlayerPrivate(RendererBase *rb);
-	/// Destructor
-	virtual ~PlayerPrivate();
+		/// Constructor
+		PlayerPrivate(RendererBase *rb);
+		/// Destructor
+		virtual ~PlayerPrivate();
 
-	/// Start thread
-	void run();
+		/// Start thread
+		void run();
 
-	/// Start the video/audio playback
-	bool startPlayback();
+		/// Start the video/audio playback
+		bool startPlayback();
 
-	/// Stop the video/audio playback
-	void stopPlayback(int timeOutMilliseconds = -1);
+		/// Stop the video/audio playback
+		void stopPlayback(int timeOutMilliseconds = -1);
 
-	/// Get the next frame (based on speed and direction)
-	std::shared_ptr<Frame> getFrame();
+		/// Get the next frame (based on speed and direction)
+		std::shared_ptr<Frame> getFrame();
 
-	/// The parent class of PlayerPrivate
-	friend class QtPlayer;
-    };
+		/// The parent class of PlayerPrivate
+		friend class QtPlayer;
+	};
 
 }
 

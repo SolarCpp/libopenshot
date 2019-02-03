@@ -46,6 +46,7 @@ namespace openshot
 		PLAYBACK_PAUSED,	///< Pause the video (holding the last displayed frame)
 		PLAYBACK_LOADING,	///< Loading the video (display a loading animation)
 		PLAYBACK_STOPPED,	///< Stop playing the video (clear cache, done with player)
+		PLAYBACK_INI
 	};
 
 	/**

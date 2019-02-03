@@ -118,4 +118,10 @@ namespace openshot
 
 	return;
     }
+
+	void VideoCacheThread::stopPlayback(int timeOutMilliseconds) {
+		stopThread(timeOutMilliseconds);
+		Stop();
+		reader = nullptr;
+	}
 }

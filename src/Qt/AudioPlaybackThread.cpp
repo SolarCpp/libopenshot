@@ -34,14 +34,18 @@ namespace openshot
 {
 
 	// Global reference to device manager
-	AudioDeviceManagerSingleton *AudioDeviceManagerSingleton::m_pInstance = NULL;
+	std::shared_ptr<AudioDeviceManagerSingleton> AudioDeviceManagerSingleton::m_pInstance; // = NULL;
+
+	void AudioDeviceManagerSingleton::Finialize() {
+		AudioDeviceManagerSingleton::m_pInstance.reset();
+	}
 
 	// Create or Get an instance of the device manager singleton
 	AudioDeviceManagerSingleton *AudioDeviceManagerSingleton::Instance(int numChannels)
 	{
 		if (!m_pInstance) {
 			// Create the actual instance of device manager only once
-			m_pInstance = new AudioDeviceManagerSingleton;
+			m_pInstance.reset(new AudioDeviceManagerSingleton);
 
 			// Initialize audio device only 1 time
             m_pInstance->audioDeviceManager.initialise (
@@ -51,7 +55,7 @@ namespace openshot
 					true  /* select default device on failure */);
 		}
 
-		return m_pInstance;
+		return m_pInstance.get();
 	}
 
     // Close audio device
@@ -81,16 +85,23 @@ namespace openshot
     // Destructor
     AudioPlaybackThread::~AudioPlaybackThread()
     {
+		std::lock_guard<std::mutex> lock(m_source);
+		if (source)
+			delete source;
     }
 
     // Set the reader object
     void AudioPlaybackThread::Reader(ReaderBase *reader) {
-		if (source)
-			source->Reader(reader);
-		else {
-			// Create new audio source reader
-			source = new AudioReaderSource(reader, 1, buffer_size);
-			source->setLooping(true); // prevent this source from terminating when it reaches the end
+
+		{
+			std::lock_guard<std::mutex> lock(m_source);
+			if (source)
+				source->Reader(reader);
+			else {
+				// Create new audio source reader
+				source = new AudioReaderSource(reader, 1, buffer_size);
+				source->setLooping(true); // prevent this source from terminating when it reaches the end
+			}
 		}
 
 		// Set local vars
@@ -185,13 +196,26 @@ namespace openshot
 				AudioDeviceManagerSingleton::Instance(0)->audioDeviceManager.removeAudioCallback(&player);
 
 				// Remove source
-				delete source;
-				source = NULL;
+				{
+
+					std::lock_guard<std::mutex> lock(m_source);
+					delete source;
+					source = NULL;
+				}
 
 				// Stop time slice thread
 				time_thread.stopThread(-1);
     		}
     	}
-
     }
+
+	void AudioPlaybackThread::stopPlayback(int timeOutMilliseconds) {
+		stopThread(timeOutMilliseconds);
+		{
+			std::lock_guard<std::mutex> lock(m_source);
+			if (source)
+				delete source;
+			source = nullptr;
+		}
+	}
 }

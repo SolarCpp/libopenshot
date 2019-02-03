@@ -7,3 +7,4 @@ build/*
 /.vscode/
 /.vs/
 /build-vc17/
+/.exe/

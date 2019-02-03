@@ -35,13 +35,17 @@
 
 using namespace openshot;
 
-QtPlayer::QtPlayer() : PlayerBase(), p(new PlayerPrivate(new VideoRenderer())), threads_started(false)
+QtPlayer::QtPlayer() 
+	: PlayerBase(), 
+	p(new PlayerPrivate(new VideoRenderer())), threads_started(false)
 {
+	mode = PLAYBACK_INI;
 	reader = NULL;
 }
 
 QtPlayer::QtPlayer(RendererBase *rb) : PlayerBase(), p(new PlayerPrivate(rb)), threads_started(false)
 {
+	mode = PLAYBACK_INI;
 	reader = NULL;
 }
 
@@ -61,23 +65,40 @@ void QtPlayer::CloseAudioDevice()
 
 void QtPlayer::SetSource(const std::string &source)
 {
-	FFmpegReader *ffreader = new FFmpegReader(source, false);
-	ffreader->DisplayInfo();
-	ffreader->Open();
+
+	try {
+		FFmpegReader *ffreader = new FFmpegReader(source, false);
+		ffreader->DisplayInfo();
+		ffreader->Open();
+
+		Stop();
+
+		auto old = Reader();
+		Reader(ffreader);
+
+		if (old) {
+			old->Close();
+			delete old;
+		}
+	}
+	catch (...) {
+
+	}
+
+	
 
 	//reader = new FrameMapper(ffreader, ffreader->info.fps, PULLDOWN_NONE, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
-	auto timeline = new Timeline(ffreader->info.width, ffreader->info.height, ffreader->info.fps, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
-	Clip *c = new Clip(source);
-	c->Open();
+	//auto timeline = new Timeline(ffreader->info.width, ffreader->info.height, ffreader->info.fps, ffreader->info.sample_rate, ffreader->info.channels, ffreader->info.channel_layout);
+	//Clip *c = new Clip(source);
+	//c->Open();
 
-	timeline->AddClip(c);
-	timeline->Open();
+	//timeline->AddClip(c);
+	//timeline->Open();
 
-	ZmqLogger::Instance()->Path("E:/ws.mm/libopenshot.log");
-	ZmqLogger::Instance()->Enable(true);
+	//ZmqLogger::Instance()->Path("E:/ws.mm/libopenshot.log");
+	//ZmqLogger::Instance()->Enable(true);
 
     // Set the reader
-	Reader(ffreader);
 }
 
 void QtPlayer::Play()
@@ -144,11 +165,21 @@ void QtPlayer::Stop()
 		p->audioPlayback->Stop();
 
 		// Kill all threads
-		p->stopPlayback();
+		p->stopPlayback(-1);
 	}
 
 	p->video_position = 0;
+	p->audio_position = 0;
 	threads_started = false;
+
+	auto r = Reader();
+	if (r) {
+		r->Close();
+		delete r;
+		reader = nullptr;
+		p->reader = nullptr;
+	}
+	//p->waitForThreadToExit(-1);
 }
 
 // Set the reader object
@@ -184,6 +215,9 @@ float QtPlayer::Speed() {
 
 // Set the Playback speed multiplier (1.0 = normal speed, <1.0 = slower, >1.0 faster)
 void QtPlayer::Speed(float new_speed) {
+	if (Mode() == PLAYBACK_STOPPED || Mode() == PLAYBACK_INI)
+		return;
+
 	speed = new_speed;
 	p->speed = new_speed;
 	p->videoCache->setSpeed(new_speed);

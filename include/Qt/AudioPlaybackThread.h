@@ -32,6 +32,8 @@
 #include "../ReaderBase.h"
 #include "../RendererBase.h"
 #include "../AudioReaderSource.h"
+#include <memory>
+#include <mutex>
 
 namespace openshot
 {
@@ -60,11 +62,13 @@ namespace openshot
 		AudioDeviceManagerSingleton(){};
 
 		/// Private variable to keep track of singleton instance
-		static AudioDeviceManagerSingleton * m_pInstance;
+		static std::shared_ptr < AudioDeviceManagerSingleton > m_pInstance;
 
 	public:
 		/// Create or get an instance of this singleton (invoke the class with this method)
 		static AudioDeviceManagerSingleton * Instance(int numChannels);
+
+		static void AudioDeviceManagerSingleton::Finialize();
 
 		/// Public device manager property
 		AudioDeviceManager audioDeviceManager;
@@ -81,7 +85,10 @@ namespace openshot
 	AudioSourcePlayer player;
 	AudioTransportSource transport;
 	MixerAudioSource mixer;
+
+	std::mutex m_source;
 	AudioReaderSource *source;
+
 	double sampleRate;
 	int numChannels;
 	WaitableEvent play;
@@ -121,6 +128,10 @@ namespace openshot
 
     /// Get Speed (The speed and direction to playback a reader (1=normal, 2=fast, 3=faster, -1=rewind, etc...)
     int getSpeed() const { if (source) return source->getSpeed(); else return 1; }
+
+
+	/// Stop the video/audio playback
+	void stopPlayback(int timeOutMilliseconds = -1);
 
 	friend class PlayerPrivate;
 	friend class QtPlayer;

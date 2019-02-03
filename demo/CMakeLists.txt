@@ -1,3 +1,6 @@
 
-add_executable(player player.cpp)
+
+
+
+add_executable(player player.cpp )
 target_link_libraries(player openshot)
